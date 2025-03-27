@@ -1,0 +1,55 @@
+name: Deploy Lambda Functions
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 'Python 3.13'
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+        pip install pytest
+
+    - name: Run tests
+      run: |
+        pytest tests/
+
+    - name: Package Get Contact Lambda
+      run: |
+        cd backend/lambda_functions/get-contact
+        zip -r ../../../get-contact.zip .
+
+    - name: Package Update Contact Lambda
+      run: |
+        cd backend/lambda_functions/update-contact
+        zip -r ../../../update-contact.zip .
+
+    - name: Update Lambda Functions
+      run: |
+        aws lambda update-function-code --function-name get-contact --zip-file fileb://get-contact.zip
+        aws lambda update-function-code --function-name update-contact --zip-file fileb://update-contact.zip

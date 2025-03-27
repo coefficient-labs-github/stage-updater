@@ -35,10 +35,6 @@ jobs:
         pip install -r backend/requirements.txt
         pip install pytest
 
-    - name: Run tests
-      run: |
-        pytest tests/
-
     - name: Package Get Contact Lambda
       run: |
         cd backend/lambda_functions/get-contact

@@ -7,7 +7,7 @@ import os
 def get_hubspot_key():
     """Retrieve HubSpot API key from AWS Secrets Manager"""
     secret_name = "hubspot/api_key"
-    region_name = "us-east-1"  # Change to your region
+    region_name = "us-east-1"  
     
     session = boto3.session.Session()
     client = session.client(
@@ -93,12 +93,13 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Methods': 'GET'
             },
             'body': json.dumps({
-                'contacts': unprocessed_contacts[:1]  # Return only the next contact
+                # Return only the next contact
+                'contacts': unprocessed_contacts[:1]  
             })
         }
         
     except Exception as e:
-        print(f"Error occurred: {str(e)}")  # Log the error
+        print(f"Error occurred: {str(e)}")  
         return {
             'statusCode': 500,
             'headers': {
@@ -108,3 +109,5 @@ def lambda_handler(event, context):
                 'error': str(e)
             })
         }
+    
+# Test Comment: to see if function is updated by GitHub Push

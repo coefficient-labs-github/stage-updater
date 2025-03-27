@@ -9,8 +9,8 @@ def lambda_handler(event, context):
         
         # Parse the request body
         contact_vid = event.get('vid')
-        value = event.get('value', 'Yes')  # Default to 'Yes' for backward compatibility
-        note = event.get('note', '')  # Get the note from the request
+        value = event.get('value', 'Yes') 
+        note = event.get('note', '')  
         
         if not contact_vid:
             return {
@@ -76,3 +76,5 @@ def lambda_handler(event, context):
                 'error': str(e)
             })
         } 
+    
+# Test Comment: to see if lambda function is updated by GitHub Push

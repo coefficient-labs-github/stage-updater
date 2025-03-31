@@ -4,9 +4,7 @@
     "version": "1.0",
     "description": "Automates LinkedIn outreach process with HubSpot integration",
     "permissions": [
-      "activeTab",
-      "scripting",
-      "tabs"
+      "activeTab"
     ],
     "host_permissions": [
       "https://*.linkedin.com/*",

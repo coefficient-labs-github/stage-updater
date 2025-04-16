@@ -6,56 +6,48 @@ A Chrome extension that streamlines the LinkedIn outreach process by integrating
 
 ## Features
 
-- �� Secure authentication system for organizational access
-- �� Seamless integration between LinkedIn and HubSpot
-- �� Add outreach notes directly from LinkedIn
+- 🔒 Secure authentication system for organizational access
+- 🔄 Seamless integration between LinkedIn and HubSpot
+- 📝 Add outreach notes directly from LinkedIn
 - ✅ Quick Yes/No status updates
-- �� Automatic contact status synchronization with HubSpot
-- �� Support for both local development and production environments
-
-## Project Structure
+- 🔄 Automatic contact status synchronization with HubSpot
+- 🛠 Support for both local development and production environments
 
 ## Project Structure
 
 ```plaintext
-stage_updater_org/
+stage-updater/
 ├── backend/
 │   ├── lambda_functions/
-│   │   ├── auth/
-│   │   │   └── lambda_function.py
 │   │   ├── get-contact/
-│   │   │   └── lambda_function.py
-│   │   ├── update-contact/
-│   │   │   └── lambda_function.py
-│   │   └── test_lambda.py
+│   │   └── update-contact/
+│   ├── local_server.py
+│   ├── start-local.sh
 │   ├── requirements.txt
-│   └── .env
+│   ├── requirements.dev.txt
+│   ├── .env
+│   └── .example.env
 ├── chrome-extension/
 │   ├── icons/
-│   │   ├── icon16.png
-│   │   ├── icon48.png
-│   │   └── icon128.png
 │   ├── manifest.json
 │   ├── window.html
 │   ├── window.js
 │   ├── config.js
-│   ├── config_example.js
+│   ├── config.example.js
 │   ├── background.js
 │   └── content.js
 ├── media/
 │   └── flow.png
 └── .github/
     └── workflows/
-        └── deploy.yml
 ```
 
 ## Technical Architecture
 
 ### Backend (AWS Lambda)
 
-The backend consists of three serverless functions:
+The backend consists of two serverless functions:
 
-- **Auth Lambda**: Handles user authentication
 - **Get Contact Lambda**: Retrieves the next contact to process from HubSpot
 - **Update Contact Lambda**: Updates contact status and notes in HubSpot
 
@@ -70,14 +62,20 @@ The backend consists of three serverless functions:
 
 ### Backend Setup
 
-1. Create AWS Lambda functions:
+1. Install dependencies:
 
    ```bash
-   # Install dependencies
+   # Install production dependencies
    pip install -r backend/requirements.txt
+
+   # Install development dependencies
+   pip install -r backend/requirements.dev.txt
    ```
 
 2. Configure environment variables:
+
+   - Copy `.example.env` to `.env`
+   - Update the values in `.env`:
 
    ```
    HUBSPOT_API_KEY=your_hubspot_api_key
@@ -90,8 +88,10 @@ The backend consists of three serverless functions:
 
 1. Configure the extension:
 
+   - Copy `config.example.js` to `config.js`
+   - Update the endpoints in `config.js`:
+
    ```javascript
-   // Copy config_example.js to config.js and update endpoints
    const config = {
      production: {
        API_ENDPOINT: "your_api_endpoint/contact",
@@ -109,17 +109,74 @@ The backend consists of three serverless functions:
 
 ### Local Development
 
-1. Run the local server:
+#### Backend Setup
+
+1. Navigate to the backend directory:
 
    ```bash
    cd backend
-   python lambda_functions/test_lambda.py
    ```
 
-2. Set config.js to development mode:
-   ```javascript
-   const environment = "development";
+2. Set up your environment variables:
+
+   - Copy the example environment file:
+     ```bash
+     cp .example.env .env
+     ```
+   - Edit `.env` with your configuration:
+     ```
+     HUBSPOT_API_KEY=your_hubspot_api_key
+     LOGIN_API_KEY=your_organization_key
+     ```
+
+3. Make the start script executable (first time only):
+
+   ```bash
+   chmod +x start-local.sh
    ```
+
+4. Start the local server:
+   ```bash
+   ./start-local.sh
+   ```
+   This script will:
+   - Create and activate a Python virtual environment
+   - Install all required dependencies
+   - Load environment variables
+   - Start the local server
+
+#### Chrome Extension Setup
+
+1. Navigate to the chrome-extension directory:
+
+   ```bash
+   cd chrome-extension
+   ```
+
+2. Configure the development environment:
+
+   - Copy the example config:
+     ```bash
+     cp config.example.js config.js
+     ```
+   - Edit `config.js` to point to your local server:
+     ```javascript
+     const config = {
+       API_URL: "https://localhost:3000",
+     };
+     ```
+
+3. Load the extension in Chrome:
+
+   - Open Chrome and navigate to `chrome://extensions/`
+   - Enable "Developer mode" in the top right
+   - Click "Load unpacked"
+   - Select the `chrome-extension` directory from your project
+
+4. Development Tips:
+   - After making changes to the extension code, click the "Reload" button on the extension card in `chrome://extensions/`
+   - The extension popup can be inspected by right-clicking and selecting "Inspect"
+   - Background and content scripts can be debugged through the extension's developer tools
 
 ### Deployment
 
@@ -133,7 +190,6 @@ The project uses GitHub Actions for automated deployment:
 
 - Authentication required for all API endpoints
 - API keys stored securely in AWS Lambda environment variables
-- CORS configured for secure cross-origin requests
 - Sensitive configuration files excluded from version control
 
 ## Contributing

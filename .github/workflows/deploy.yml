@@ -41,11 +41,13 @@ jobs:
       - name: Package Get Contact Lambda
         run: |
           cd backend/lambda_functions/get-contact
+          pip install -r ../../requirements.txt -t .
           zip -r ../../../get-contact.zip .
 
       - name: Package Update Contact Lambda
         run: |
           cd backend/lambda_functions/update-contact
+          pip install -r ../../requirements.txt -t .
           zip -r ../../../update-contact.zip .
 
       - name: Update Lambda Functions

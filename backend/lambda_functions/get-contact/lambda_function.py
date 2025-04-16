@@ -7,15 +7,23 @@ load_dotenv()
 
 def lambda_handler(event, context):
     try:
+        print(f"Received event: {json.dumps(event)}")  # Debug log
+        
         # Case-insensitive header check
         auth_header = None
         headers = event.get('headers', {})
+        print(f"Headers received: {json.dumps(headers)}")  # Debug log
+        
         for key in headers:
             if key.lower() == 'x-auth':
                 auth_header = headers[key]
                 break
+                
+        print(f"Auth header found: {auth_header}")  # Debug log
+        print(f"Expected API key: {os.environ.get('LOGIN_API_KEY')}")  # Debug log
 
         if not auth_header or auth_header != os.environ.get('LOGIN_API_KEY'):
+            print("Authentication failed")  # Debug log
             return {
                 'statusCode': 401,
                 'headers': {

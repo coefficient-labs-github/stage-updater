@@ -1,11 +1,13 @@
 # LinkedIn Outreach Tool
 
 ## Project Overview
-A Chrome Extension that streamlines LinkedIn outreach by integrating with HubSpot through AWS serverless backend.
+
+A Chrome Extension that streamlines LinkedIn outreach by integrating with HubSpot through AWS serverless backend
 
 ## Architecture
 
 ### Backend (AWS)
+
 - **AWS Lambda Functions**:
   - `get-contact`: Fetches next unprocessed contact
   - `update-contact`: Updates contact status in HubSpot
@@ -13,6 +15,7 @@ A Chrome Extension that streamlines LinkedIn outreach by integrating with HubSpo
 - **Secrets Manager**: Secure storage for HubSpot API key
 
 ### Frontend (Chrome Extension)
+
 - **User Interface**:
   - Popup window with contact information
   - Yes/No decision buttons
@@ -25,6 +28,7 @@ A Chrome Extension that streamlines LinkedIn outreach by integrating with HubSpo
 ## Implementation Steps
 
 ### 1. Backend Setup
+
 ```bash
 lambda_functions/
 ├── get_contact/
@@ -36,12 +40,14 @@ lambda_functions/
 ```
 
 #### AWS Configuration
+
 1. Create AWS Lambda functions
 2. Set up API Gateway
 3. Configure Secrets Manager
 4. Set up IAM roles and permissions
 
 ### 2. Chrome Extension Development
+
 ```bash
 chrome_extension/
 ├── manifest.json
@@ -53,6 +59,7 @@ chrome_extension/
 ```
 
 ## User Flow
+
 1. User clicks extension icon in Chrome
 2. Extension fetches next contact from AWS backend
 3. LinkedIn profile opens automatically
@@ -63,6 +70,7 @@ chrome_extension/
 ## Development Phases
 
 ### Phase 1: AWS Backend
+
 - [ ] Set up AWS account and services
 - [ ] Create Lambda functions
 - [ ] Configure API Gateway
@@ -70,6 +78,7 @@ chrome_extension/
 - [ ] Test endpoints
 
 ### Phase 2: Chrome Extension
+
 - [ ] Create extension structure
 - [ ] Implement popup UI
 - [ ] Connect to AWS endpoints
@@ -77,6 +86,7 @@ chrome_extension/
 - [ ] Test user flow
 
 ### Phase 3: Deployment & Distribution
+
 - [ ] Deploy backend to AWS
 - [ ] Package Chrome extension
 - [ ] Create installation instructions
@@ -85,6 +95,7 @@ chrome_extension/
 ## Installation Instructions
 
 ### For Users (Your Boss)
+
 1. Download the Chrome extension from the provided GitHub repository
 2. Open Chrome and go to `chrome://extensions/`
 3. Enable "Developer mode"
@@ -92,24 +103,28 @@ chrome_extension/
 5. Click the extension icon to start using
 
 ### For Developers
+
 1. Clone the repository
 2. Set up AWS resources using provided scripts
 3. Update API endpoints in extension code
 4. Test locally before deployment
 
 ## Security Considerations
+
 - API Gateway authentication
 - Lambda execution roles
 - Secrets management
 - CORS configuration
 
 ## Maintenance
+
 - Monitor Lambda execution
 - Check API Gateway logs
 - Update dependencies
 - Backup configurations
 
 ## Resources
+
 - AWS Lambda Documentation
 - Chrome Extension Documentation
 - HubSpot API Documentation

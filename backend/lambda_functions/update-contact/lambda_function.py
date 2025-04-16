@@ -31,9 +31,10 @@ def lambda_handler(event, context):
         api_key = os.environ['HUBSPOT_API_KEY']
         
         # Parse the request body
-        contact_vid = event.get('vid')
-        value = event.get('value', 'Yes') 
-        note = event.get('note', '')  
+        body = json.loads(event.get('body', '{}'))
+        contact_vid = body.get('vid')
+        value = body.get('value', 'Yes') 
+        note = body.get('note', '')  
         
         if not contact_vid:
             return {

@@ -7,23 +7,16 @@ load_dotenv()
 
 def lambda_handler(event, context):
     try:
-        print(f"Received event: {json.dumps(event)}")  # Debug log
-        
         # Case-insensitive header check
         auth_header = None
         headers = event.get('headers', {})
-        print(f"Headers received: {json.dumps(headers)}")  # Debug log
         
         for key in headers:
             if key.lower() == 'x-auth':
                 auth_header = headers[key]
                 break
-                
-        print(f"Auth header found: {auth_header}")  # Debug log
-        print(f"Expected API key: {os.environ.get('LOGIN_API_KEY')}")  # Debug log
 
         if not auth_header or auth_header != os.environ.get('LOGIN_API_KEY'):
-            print("Authentication failed")  # Debug log
             return {
                 'statusCode': 401,
                 'headers': {
@@ -32,19 +25,12 @@ def lambda_handler(event, context):
                     'Access-Control-Allow-Methods': 'GET'
                 },
                 'body': json.dumps({
-                    'error': 'Unauthorized',
-                    'debug_info': {
-                        'received_headers': headers,
-                        'found_auth_header': auth_header,
-                        'expected_api_key': os.environ.get('LOGIN_API_KEY'),
-                        'headers_lowercase': {k.lower(): v for k, v in headers.items()}
-                    }
+                    'error': 'Unauthorized'
                 })
             }
 
         # Get API key from environment variable
         api_key = os.environ['HUBSPOT_API_KEY']
-        print(f"API Key exists: {'HUBSPOT_API_KEY' in os.environ}")
         
         # HubSpot API setup
         list_id = 246
@@ -78,16 +64,12 @@ def lambda_handler(event, context):
             
             if "contacts" in data:
                 all_contacts.extend(data["contacts"])
-                print(f"Fetched {len(data['contacts'])} contacts in this batch")
             
             # Check for more contacts
             if data.get("has-more", False) and "vid-offset" in data:
                 params["vidOffset"] = data["vid-offset"]
-                print(f"Getting next batch with offset: {data['vid-offset']}")
             else:
                 break
-        
-        print(f"Total contacts fetched: {len(all_contacts)}")
         
         # Process contacts
         unprocessed_contacts = []
@@ -102,8 +84,6 @@ def lambda_handler(event, context):
                     'post_name': props.get('post_name', {}).get('value')
                 })
         
-        print(f"Found {len(unprocessed_contacts)} unprocessed contacts")
-        
         return {
             'statusCode': 200,
             'headers': {
@@ -112,20 +92,18 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Methods': 'GET'
             },
             'body': json.dumps({
-                # Return only the next contact
-                'contacts': unprocessed_contacts[:1]  
+                'contacts': unprocessed_contacts[:1]
             })
         }
         
     except Exception as e:
-        print(f"Error occurred: {str(e)}")  
         return {
             'statusCode': 500,
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
-                'error': str(e)
+                'error': 'Internal server error'
             })
         }
     

@@ -90,15 +90,14 @@ def lambda_handler(event, context):
         }
         
     except Exception as e:
-        print(f"Error occurred: {str(e)}")
         return {
             'statusCode': 500,
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
-                'error': str(e)
+                'error': 'Internal server error'
             })
-        } 
+        }
     
 # Test Comment: to see if lambda function is updated by GitHub Push; push using 3.9.21

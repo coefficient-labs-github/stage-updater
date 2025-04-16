@@ -32,7 +32,13 @@ def lambda_handler(event, context):
                     'Access-Control-Allow-Methods': 'GET'
                 },
                 'body': json.dumps({
-                    'error': 'Unauthorized'
+                    'error': 'Unauthorized',
+                    'debug_info': {
+                        'received_headers': headers,
+                        'found_auth_header': auth_header,
+                        'expected_api_key': os.environ.get('LOGIN_API_KEY'),
+                        'headers_lowercase': {k.lower(): v for k, v in headers.items()}
+                    }
                 })
             }
 

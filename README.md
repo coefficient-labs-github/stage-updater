@@ -1,130 +1,145 @@
-# LinkedIn Outreach Tool
+# LinkedIn Outreach Assistant
 
-## Project Overview
+A Chrome extension that streamlines the LinkedIn outreach process by integrating with HubSpot. This tool helps manage and track outreach efforts efficiently by allowing users to view LinkedIn profiles and update contact statuses directly from the browser.
 
-A Chrome Extension that streamlines LinkedIn outreach by integrating with HubSpot through AWS serverless backend
+![Outreach Flow](media/flow.png)
 
-## Architecture
+## Features
 
-### Backend (AWS)
+- �� Secure authentication system for organizational access
+- �� Seamless integration between LinkedIn and HubSpot
+- �� Add outreach notes directly from LinkedIn
+- ✅ Quick Yes/No status updates
+- �� Automatic contact status synchronization with HubSpot
+- �� Support for both local development and production environments
 
-- **AWS Lambda Functions**:
-  - `get-contact`: Fetches next unprocessed contact
-  - `update-contact`: Updates contact status in HubSpot
-- **API Gateway**: RESTful endpoints
-- **Secrets Manager**: Secure storage for HubSpot API key
+## Project Structure
 
-### Frontend (Chrome Extension)
+## Project Structure
 
-- **User Interface**:
-  - Popup window with contact information
-  - Yes/No decision buttons
-  - Notes input field
-- **Features**:
-  - Automatic LinkedIn profile loading
-  - Simple, intuitive interface
-  - Direct communication with AWS backend
-
-## Implementation Steps
-
-### 1. Backend Setup
-
-```bash
-lambda_functions/
-├── get_contact/
-│   ├── lambda_function.py
-│   └── requirements.txt
-└── update_contact/
-    ├── lambda_function.py
-    └── requirements.txt
+```plaintext
+stage_updater_org/
+├── backend/
+│   ├── lambda_functions/
+│   │   ├── auth/
+│   │   │   └── lambda_function.py
+│   │   ├── get-contact/
+│   │   │   └── lambda_function.py
+│   │   ├── update-contact/
+│   │   │   └── lambda_function.py
+│   │   └── test_lambda.py
+│   ├── requirements.txt
+│   └── .env
+├── chrome-extension/
+│   ├── icons/
+│   │   ├── icon16.png
+│   │   ├── icon48.png
+│   │   └── icon128.png
+│   ├── manifest.json
+│   ├── window.html
+│   ├── window.js
+│   ├── config.js
+│   ├── config_example.js
+│   ├── background.js
+│   └── content.js
+├── media/
+│   └── flow.png
+└── .github/
+    └── workflows/
+        └── deploy.yml
 ```
 
-#### AWS Configuration
+## Technical Architecture
 
-1. Create AWS Lambda functions
-2. Set up API Gateway
-3. Configure Secrets Manager
-4. Set up IAM roles and permissions
+### Backend (AWS Lambda)
 
-### 2. Chrome Extension Development
+The backend consists of three serverless functions:
 
-```bash
-chrome_extension/
-├── manifest.json
-├── popup.html
-├── popup.js
-├── styles.css
-└── icons/
-    └── icon48.png
-```
+- **Auth Lambda**: Handles user authentication
+- **Get Contact Lambda**: Retrieves the next contact to process from HubSpot
+- **Update Contact Lambda**: Updates contact status and notes in HubSpot
 
-## User Flow
+### Chrome Extension
 
-1. User clicks extension icon in Chrome
-2. Extension fetches next contact from AWS backend
-3. LinkedIn profile opens automatically
-4. User makes decision (Yes/No + Note)
-5. Extension sends update to AWS backend
-6. Next contact loads automatically
+- **Popup Interface**: User-friendly interface for viewing and updating contact information
+- **Authentication**: Secure access control using organization-specific API keys
+- **LinkedIn Integration**: Automatically opens LinkedIn profiles for review
+- **HubSpot Sync**: Direct updates to HubSpot contact records
 
-## Development Phases
+## Setup and Installation
 
-### Phase 1: AWS Backend
+### Backend Setup
 
-- [ ] Set up AWS account and services
-- [ ] Create Lambda functions
-- [ ] Configure API Gateway
-- [ ] Set up Secrets Manager
-- [ ] Test endpoints
+1. Create AWS Lambda functions:
 
-### Phase 2: Chrome Extension
+   ```bash
+   # Install dependencies
+   pip install -r backend/requirements.txt
+   ```
 
-- [ ] Create extension structure
-- [ ] Implement popup UI
-- [ ] Connect to AWS endpoints
-- [ ] Handle LinkedIn tab management
-- [ ] Test user flow
+2. Configure environment variables:
 
-### Phase 3: Deployment & Distribution
+   ```
+   HUBSPOT_API_KEY=your_hubspot_api_key
+   LOGIN_API_KEY=your_organization_key
+   ```
 
-- [ ] Deploy backend to AWS
-- [ ] Package Chrome extension
-- [ ] Create installation instructions
-- [ ] Test end-to-end functionality
+3. Deploy using GitHub Actions workflow (automated on push to main)
 
-## Installation Instructions
+### Chrome Extension Setup
 
-### For Users (Your Boss)
+1. Configure the extension:
 
-1. Download the Chrome extension from the provided GitHub repository
-2. Open Chrome and go to `chrome://extensions/`
-3. Enable "Developer mode"
-4. Click "Load unpacked" and select the downloaded extension folder
-5. Click the extension icon to start using
+   ```javascript
+   // Copy config_example.js to config.js and update endpoints
+   const config = {
+     production: {
+       API_ENDPOINT: "your_api_endpoint/contact",
+       AUTH_ENDPOINT: "your_api_endpoint/auth",
+     },
+   };
+   ```
 
-### For Developers
+2. Load the extension in Chrome:
+   - Open Chrome Extensions (chrome://extensions/)
+   - Enable Developer Mode
+   - Load unpacked extension from chrome-extension directory
 
-1. Clone the repository
-2. Set up AWS resources using provided scripts
-3. Update API endpoints in extension code
-4. Test locally before deployment
+## Development
 
-## Security Considerations
+### Local Development
 
-- API Gateway authentication
-- Lambda execution roles
-- Secrets management
-- CORS configuration
+1. Run the local server:
 
-## Maintenance
+   ```bash
+   cd backend
+   python lambda_functions/test_lambda.py
+   ```
 
-- Monitor Lambda execution
-- Check API Gateway logs
-- Update dependencies
-- Backup configurations
+2. Set config.js to development mode:
+   ```javascript
+   const environment = "development";
+   ```
 
-## Resources
+### Deployment
 
-- AWS Lambda Documentation
-- Chrome Extension Documentation
-- HubSpot API Documentation
+The project uses GitHub Actions for automated deployment:
+
+- Pushes to main branch trigger automatic updates to Lambda functions
+- API Gateway configuration must be updated manually
+- Chrome extension must be manually published to the Chrome Web Store
+
+## Security
+
+- Authentication required for all API endpoints
+- API keys stored securely in AWS Lambda environment variables
+- CORS configured for secure cross-origin requests
+- Sensitive configuration files excluded from version control
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request

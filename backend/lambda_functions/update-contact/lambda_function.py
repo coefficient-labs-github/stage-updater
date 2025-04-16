@@ -1,9 +1,32 @@
 import json
 import os
 import requests
+from dotenv import load_dotenv
+load_dotenv()
 
 def lambda_handler(event, context):
     try:
+        # Case-insensitive header check
+        auth_header = None
+        headers = event.get('headers', {})
+        for key in headers:
+            if key.lower() == 'x-auth':
+                auth_header = headers[key]
+                break
+
+        if not auth_header or auth_header != os.environ.get('LOGIN_API_KEY'):
+            return {
+                'statusCode': 401,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type, x-auth',
+                    'Access-Control-Allow-Methods': 'POST'
+                },
+                'body': json.dumps({
+                    'error': 'Unauthorized'
+                })
+            }
+
         # Get API key from environment variable
         api_key = os.environ['HUBSPOT_API_KEY']
         

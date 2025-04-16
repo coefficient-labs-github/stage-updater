@@ -1,28 +1,33 @@
 import json
-import boto3
 from botocore.exceptions import ClientError
 import requests
 import os
-
-def get_hubspot_key():
-    """Retrieve HubSpot API key from AWS Secrets Manager"""
-    secret_name = "hubspot/api_key"
-    region_name = "us-east-1"  
-    
-    session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name
-    )
-    
-    try:
-        secret_value = client.get_secret_value(SecretId=secret_name)
-        return json.loads(secret_value['SecretString'])['HUBSPOT_API_KEY']
-    except ClientError as e:
-        raise e
+from dotenv import load_dotenv
+load_dotenv()
 
 def lambda_handler(event, context):
     try:
+        # Case-insensitive header check
+        auth_header = None
+        headers = event.get('headers', {})
+        for key in headers:
+            if key.lower() == 'x-auth':
+                auth_header = headers[key]
+                break
+
+        if not auth_header or auth_header != os.environ.get('LOGIN_API_KEY'):
+            return {
+                'statusCode': 401,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type, x-auth',
+                    'Access-Control-Allow-Methods': 'GET'
+                },
+                'body': json.dumps({
+                    'error': 'Unauthorized'
+                })
+            }
+
         # Get API key from environment variable
         api_key = os.environ['HUBSPOT_API_KEY']
         print(f"API Key exists: {'HUBSPOT_API_KEY' in os.environ}")

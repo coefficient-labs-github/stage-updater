@@ -53,10 +53,46 @@ The backend consists of two serverless functions:
 
 ### Chrome Extension
 
-- **Popup Interface**: User-friendly interface for viewing and updating contact information
-- **Authentication**: Secure access control using organization-specific API keys
-- **LinkedIn Integration**: Automatically opens LinkedIn profiles for review
-- **HubSpot Sync**: Direct updates to HubSpot contact records
+#### Flow
+
+```mermaid
+graph TD
+    A[Extension Opens] --> B{Check Storage for API Key}
+    B -->|Key Found| C[Fetch Contact]
+    B -->|No Key| D[Show Login]
+    C -->|Success| E[Show Contact View]
+    C -->|Error 401| D
+    C -->|Other Error| F[Show Error]
+    E --> G[User Input]
+    G --> H[Update Contact]
+    H -->|Success| C
+    H -->|Error 401| D
+    H -->|Other Error| F
+    D --> I[Save API Key]
+    I --> C
+```
+
+#### Views
+
+1. **Contact View**
+
+   - Displays contact information
+   - Opens LinkedIn profile automatically
+   - Input fields for notes
+   - Yes/No buttons for processing
+
+2. **Login View**
+
+   - API key input
+
+3. **Loading View**
+
+   - Shown during API calls
+   - Simple spinner animation
+
+4. **Error View**
+   - Displays error messages
+   - Option to retry or return to login
 
 ## Setup and Installation
 

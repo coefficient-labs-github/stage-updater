@@ -60,53 +60,6 @@ The backend consists of two serverless functions:
 
 ## Setup and Installation
 
-### Backend Setup
-
-1. Install dependencies:
-
-   ```bash
-   # Install production dependencies
-   pip install -r backend/requirements.txt
-
-   # Install development dependencies
-   pip install -r backend/requirements.dev.txt
-   ```
-
-2. Configure environment variables:
-
-   - Copy `.example.env` to `.env`
-   - Update the values in `.env`:
-
-   ```
-   HUBSPOT_API_KEY=your_hubspot_api_key
-   LOGIN_API_KEY=your_organization_key
-   ```
-
-3. Deploy using GitHub Actions workflow (automated on push to main)
-
-### Chrome Extension Setup
-
-1. Configure the extension:
-
-   - Copy `config.example.js` to `config.js`
-   - Update the endpoints in `config.js`:
-
-   ```javascript
-   const config = {
-     production: {
-       API_ENDPOINT: "your_api_endpoint/contact",
-       AUTH_ENDPOINT: "your_api_endpoint/auth",
-     },
-   };
-   ```
-
-2. Load the extension in Chrome:
-   - Open Chrome Extensions (chrome://extensions/)
-   - Enable Developer Mode
-   - Load unpacked extension from chrome-extension directory
-
-## Development
-
 ### Local Development
 
 #### Backend Setup

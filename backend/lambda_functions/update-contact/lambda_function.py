@@ -11,15 +11,29 @@ def lambda_handler(event, context):
         path = event.get('requestContext', {}).get('http', {}).get('path', 'UNKNOWN')
         print(f"REQUEST: {method} {path}")
         
+        # Log all headers for debugging
+        headers = event.get('headers', {})
+        print("All headers received:", json.dumps(headers, indent=2))
+        
         # Case-insensitive header check
         auth_header = None
-        headers = event.get('headers', {})
         for key in headers:
             if key.lower() == 'x-auth':
                 auth_header = headers[key]
+                print(f"Found x-auth header with value: {auth_header}")
                 break
 
-        if not auth_header or auth_header != os.environ.get('LOGIN_API_KEY'):
+        expected_api_key = os.environ.get('LOGIN_API_KEY')
+        print(f"Expected API key: {expected_api_key}")
+
+        if not auth_header:
+            print("No x-auth header found in request")
+        elif not expected_api_key:
+            print("No LOGIN_API_KEY found in environment variables")
+        elif auth_header != expected_api_key:
+            print("API key mismatch")
+
+        if not auth_header or auth_header != expected_api_key:
             print("RESPONSE: 401 Unauthorized")
             return {
                 'statusCode': 401,

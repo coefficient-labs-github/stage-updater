@@ -181,7 +181,7 @@ function displayContact(contact) {
   });
 
   document.getElementById("contactInfo").innerHTML = `
-    <p>Name: ${contact.firstname} ${contact.lastname}</p>
+    <p data-vid="${contact.vid}">Name: ${contact.firstname} ${contact.lastname}</p>
     <p>Post: ${contact.post_name}</p>
     <div class="notes-section">
       <label for="outreachNote">Outreach Notes:</label>

@@ -6,6 +6,11 @@ load_dotenv()
 
 def lambda_handler(event, context):
     try:
+        # Log request info
+        method = event.get('requestContext', {}).get('http', {}).get('method', 'UNKNOWN')
+        path = event.get('requestContext', {}).get('http', {}).get('path', 'UNKNOWN')
+        print(f"REQUEST: {method} {path}")
+        
         # Case-insensitive header check
         auth_header = None
         headers = event.get('headers', {})
@@ -15,6 +20,7 @@ def lambda_handler(event, context):
                 break
 
         if not auth_header or auth_header != os.environ.get('LOGIN_API_KEY'):
+            print("RESPONSE: 401 Unauthorized")
             return {
                 'statusCode': 401,
                 'headers': {
@@ -37,6 +43,7 @@ def lambda_handler(event, context):
         note = body.get('note', '')  
         
         if not contact_vid:
+            print("RESPONSE: 400 Bad Request - Contact VID is required")
             return {
                 'statusCode': 400,
                 'headers': {
@@ -74,6 +81,7 @@ def lambda_handler(event, context):
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
         
+        print("RESPONSE: 200 OK")
         return {
             'statusCode': 200,
             'headers': {
@@ -90,6 +98,7 @@ def lambda_handler(event, context):
         }
         
     except Exception as e:
+        print("RESPONSE: 500 Internal Server Error")
         return {
             'statusCode': 500,
             'headers': {

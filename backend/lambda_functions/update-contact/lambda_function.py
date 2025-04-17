@@ -10,16 +10,12 @@ def lambda_handler(event, context):
         method = event.get('requestContext', {}).get('http', {}).get('method', 'UNKNOWN')
         path = event.get('requestContext', {}).get('http', {}).get('path', 'UNKNOWN')
         print(f"REQUEST: {method} {path}")
-        
-        # Log the entire event for debugging
         print("Full event:", json.dumps(event, indent=2))
-        
-        # Get headers from requestContext
-        headers = event.get('requestContext', {}).get('http', {}).get('headers', {})
-        print("Headers from requestContext:", json.dumps(headers, indent=2))
         
         # Case-insensitive header check
         auth_header = None
+        headers = event.get('headers', {})
+        
         for key in headers:
             if key.lower() == 'x-auth':
                 auth_header = headers[key]

@@ -104,22 +104,45 @@
       .input-group {
         margin-bottom: 12px;
       }
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      .error-message {
+        color: #f44336;
+        padding: 12px;
+        background-color: #ffebee;
+        border-radius: 4px;
+        margin: 8px 0;
+      }
+
+      .retry-button {
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        margin-top: 12px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
     <div class="scroll-container">
-      <div id="loadingScreen">
+      <!-- Loading View -->
+      <div id="loadingView" class="view">
         <div class="loading-spinner"></div>
-        <p>Loading...</p>
+        <p id="loadingMessage">Loading...</p>
       </div>
 
-      <div id="setupScreen" style="display: none">
+      <!-- Login View -->
+      <div id="loginView" class="view">
         <h2>LinkedIn Outreach Assistant</h2>
-        <p id="setupMessage">Please enter your authentication key:</p>
-        <div
-          id="errorMessage"
-          style="display: none; color: red; margin-bottom: 8px"
-        ></div>
+        <p id="loginMessage">Please enter your authentication key:</p>
         <div class="input-group">
           <label for="apiKey">Authentication Key:</label>
           <input
@@ -128,12 +151,30 @@
             placeholder="Enter your key here"
           />
         </div>
-        <button id="saveConfig">Start Using Extension</button>
+        <button id="loginButton">Login</button>
       </div>
 
-      <div id="mainScreen" style="display: none">
-        <button id="getNextContact">Get Next Contact</button>
+      <!-- Error View -->
+      <div id="errorView" class="view">
+        <h2>Error</h2>
+        <div class="error-message" id="errorMessage"></div>
+        <button class="retry-button" id="retryButton">Retry</button>
+      </div>
+
+      <!-- Contact View -->
+      <div id="contactView" class="view">
         <div id="contactInfo"></div>
+        <div class="notes-section">
+          <label for="outreachNote">Outreach Notes:</label>
+          <textarea
+            id="outreachNote"
+            placeholder="Add your outreach notes here..."
+          ></textarea>
+        </div>
+        <div class="button-group">
+          <button class="yes-button" id="markYes">Yes</button>
+          <button class="no-button" id="markNo">No</button>
+        </div>
       </div>
     </div>
     <script src="window.js" type="module"></script>

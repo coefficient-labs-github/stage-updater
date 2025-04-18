@@ -1,4 +1,230 @@
-let API_URL = "https://9kzy6h2ww4.execute-api.us-east-2.amazonaws.com/prod"; // default production URL
+// Configuration
+let API_URL = "https://9kzy6h2ww4.execute-api.us-east-2.amazonaws.com/prod";
+let currentContactVid = null;
+
+const Views = {
+  LOADING: "loadingView",
+  LOGIN: "loginView",
+  CONTACT: "contactView",
+  ERROR: "errorView",
+};
+
+// Initialization
+async function initializeConfig() {
+  try {
+    const localConfig = await import("./config.js");
+    API_URL = localConfig.default.API_URL;
+    console.log("Using local development URL:", API_URL);
+  } catch (error) {
+    console.log("No local config found, using production URL:", API_URL);
+  }
+}
+
+// View Management
+function showView(viewId) {
+  document.querySelectorAll(".view").forEach((view) => {
+    view.classList.remove("active");
+  });
+  document.getElementById(viewId).classList.add("active");
+}
+
+// Storage Management
+async function getStoredApiKey() {
+  const storage = await chrome.storage.local.get(["loginApiKey"]);
+  return storage.loginApiKey;
+}
+
+async function setStoredApiKey(apiKey) {
+  await chrome.storage.local.set({ loginApiKey: apiKey });
+}
+
+async function clearStoredApiKey() {
+  await chrome.storage.local.remove(["loginApiKey"]);
+}
+
+// API Functions
+async function validateApiKey(apiKey) {
+  try {
+    const response = await fetch(`${API_URL}/contact`, {
+      headers: { "x-auth": apiKey },
+    });
+    return response.status === 200;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function fetchContact(apiKey) {
+  const response = await fetch(`${API_URL}/contact`, {
+    headers: { "x-auth": apiKey },
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("UNAUTHORIZED");
+    }
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.contacts?.[0] || null;
+}
+
+async function updateContact(apiKey, vid, value, note) {
+  const response = await fetch(`${API_URL}/contact`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-auth": apiKey,
+    },
+    body: JSON.stringify({ vid, value, note }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("UNAUTHORIZED");
+    }
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+}
+
+// UI Functions
+function displayContact(contact) {
+  currentContactVid = contact.vid;
+  openLinkedInProfile(contact.linkedin_url);
+  updateContactDisplay(contact);
+}
+
+function openLinkedInProfile(url) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      chrome.tabs.update(tabs[0].id, { url });
+    }
+  });
+}
+
+function updateContactDisplay(contact) {
+  document.getElementById("contactInfo").innerHTML = `
+    <h2>Contact Details</h2>
+    <p>Name: ${contact.firstname} ${contact.lastname}</p>
+    <p>Post: ${contact.post_name}</p>
+  `;
+}
+
+// Error Handling
+function handleError(error) {
+  console.error("Error:", error);
+
+  if (error.message === "UNAUTHORIZED") {
+    clearStoredApiKey();
+    showView(Views.LOGIN);
+    return;
+  }
+
+  document.getElementById("errorMessage").textContent = error.message;
+  showView(Views.ERROR);
+}
+
+// Flow Control
+async function startContactFlow() {
+  try {
+    showView(Views.LOADING);
+    const apiKey = await getStoredApiKey();
+
+    if (!apiKey) {
+      showView(Views.LOGIN);
+      return;
+    }
+
+    await processNextContact(apiKey);
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+async function processNextContact(apiKey) {
+  try {
+    showView(Views.LOADING);
+    const contact = await fetchContact(apiKey);
+
+    if (!contact) {
+      handleError(new Error("No contacts available"));
+      return;
+    }
+
+    displayContact(contact);
+    showView(Views.CONTACT);
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+// Event Handlers
+async function handleLogin() {
+  const apiKey = document.getElementById("apiKey").value.trim();
+
+  if (!apiKey) {
+    handleError(new Error("Please enter your authentication key"));
+    return;
+  }
+
+  showView(Views.LOADING);
+
+  try {
+    const isValid = await validateApiKey(apiKey);
+    if (!isValid) {
+      handleError(new Error("Invalid authentication key"));
+      return;
+    }
+
+    await setStoredApiKey(apiKey);
+    await processNextContact(apiKey);
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+async function handleContactUpdate(value) {
+  try {
+    const apiKey = await getStoredApiKey();
+    const noteText = document.getElementById("outreachNote").value;
+
+    showView(Views.LOADING);
+    await updateContact(apiKey, currentContactVid, value, noteText);
+    await processNextContact(apiKey);
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+// Event Listeners Setup
+function setupEventListeners() {
+  // Login button
+  document.getElementById("loginButton").addEventListener("click", handleLogin);
+
+  // Contact update buttons
+  document
+    .getElementById("markYes")
+    .addEventListener("click", () => handleContactUpdate("Yes"));
+  document
+    .getElementById("markNo")
+    .addEventListener("click", () => handleContactUpdate("No"));
+
+  // Retry button
+  document
+    .getElementById("retryButton")
+    .addEventListener("click", startContactFlow);
+}
+
+// Initialize App
+async function initializeApp() {
+  await initializeConfig();
+  setupEventListeners();
+  startContactFlow();
+}
+
+// Entry Point
+document.addEventListener("DOMContentLoaded", initializeApp);
 
 // GET EXAMPLE
 // curl -X GET http://localhost:3000/contact \
@@ -15,20 +241,6 @@ let API_URL = "https://9kzy6h2ww4.execute-api.us-east-2.amazonaws.com/prod"; // 
 //     "note": "Test note for the contact"
 //   }'
 
-// Initialize the API URL from config if available
-function initializeConfig() {
-  return import("./config.js")
-    .then((localConfig) => {
-      API_URL = localConfig.default.API_URL;
-      console.log("Using local development URL:", API_URL);
-    })
-    .catch((error) => {
-      console.log("No local config found, using production URL:", API_URL);
-    });
-}
-
-let currentContactVid = null;
-
 // Show/hide screen functions
 function showScreen(screenId) {
   const screens = ["loadingScreen", "setupScreen", "mainScreen"];
@@ -38,168 +250,6 @@ function showScreen(screenId) {
       element.style.display = screen === screenId ? "block" : "none";
     }
   });
-}
-
-// Validate API key against the backend
-async function validateApiKey(apiKey) {
-  try {
-    const response = await fetch(`${API_URL}/contact`, {
-      headers: {
-        "x-auth": apiKey,
-      },
-    });
-    return response.status === 200;
-  } catch (error) {
-    console.error("Error validating API key:", error);
-    return false;
-  }
-}
-
-// Check authentication and handle the flow
-async function checkAuthentication() {
-  const result = await chrome.storage.local.get(["loginApiKey"]);
-
-  if (!result.loginApiKey) {
-    return false;
-  }
-
-  // Validate the stored key
-  const isValid = await validateApiKey(result.loginApiKey);
-  if (!isValid) {
-    // Clear invalid key
-    await chrome.storage.local.remove(["loginApiKey"]);
-    return false;
-  }
-
-  return true;
-}
-
-// Helper function to safely add event listeners
-function addSafeEventListener(elementId, event, handler) {
-  const element = document.getElementById(elementId);
-  if (element) {
-    element.addEventListener(event, handler);
-  } else {
-    console.error(`Element with id '${elementId}' not found`);
-  }
-}
-
-// Initialize configuration and set up event listeners when the document loads
-document.addEventListener("DOMContentLoaded", async () => {
-  // Show loading screen immediately
-  showScreen("loadingScreen");
-
-  // Set up event listeners
-  addSafeEventListener("saveConfig", "click", async () => {
-    const apiKey = document.getElementById("apiKey")?.value.trim();
-    if (!apiKey) {
-      showError("Please enter your authentication key");
-      return;
-    }
-    // Test the API key
-    const isValid = await validateApiKey(apiKey);
-    if (!isValid) {
-      showError("Invalid authentication key. Please check and try again.");
-      return;
-    }
-    // Store the key if valid
-    await chrome.storage.local.set({ loginApiKey: apiKey });
-    showMainScreen();
-  });
-
-  addSafeEventListener("getNextContact", "click", async () => {
-    try {
-      // Check authentication before proceeding
-      const isAuthenticated = await checkAuthentication();
-      if (!isAuthenticated) {
-        return;
-      }
-
-      document.getElementById("getNextContact").style.display = "none";
-      const result = await chrome.storage.local.get(["loginApiKey"]);
-
-      const response = await fetch(`${API_URL}/contact`, {
-        headers: {
-          "x-auth": result.loginApiKey,
-        },
-      });
-
-      if (response.status === 401) {
-        await chrome.storage.local.remove(["loginApiKey"]);
-        showSetupScreen(
-          "Your session has expired. Please enter your authentication key again."
-        );
-        return;
-      }
-
-      const data = await response.json();
-      console.log("Response data:", data);
-
-      // The response.body is already a JSON string that contains the contacts
-      if (data.contacts && data.contacts.length > 0) {
-        console.log("Found contact:", data.contacts[0]);
-        displayContact(data.contacts[0]);
-      } else {
-        document.getElementById("contactInfo").innerHTML =
-          "<p>No contacts to process</p>";
-        document.getElementById("getNextContact").style.display = "block";
-      }
-    } catch (error) {
-      console.error("Detailed error:", error);
-      document.getElementById(
-        "contactInfo"
-      ).innerHTML = `<p>Error fetching contact: ${error.message}</p>`;
-      document.getElementById("getNextContact").style.display = "block";
-    }
-  });
-
-  try {
-    await initializeConfig();
-    const isAuthenticated = await checkAuthentication();
-    if (isAuthenticated) {
-      showScreen("mainScreen");
-    } else {
-      showScreen("setupScreen");
-    }
-  } catch (error) {
-    console.error("Initialization error:", error);
-    showScreen("setupScreen");
-  }
-});
-
-// Display contact information
-function displayContact(contact) {
-  currentContactVid = contact.vid;
-
-  // Instead of opening a new tab, use chrome.tabs.update to navigate current tab
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    if (tabs[0]) {
-      chrome.tabs.update(tabs[0].id, { url: contact.linkedin_url });
-    } else {
-      chrome.tabs.create({ url: contact.linkedin_url, active: true });
-    }
-  });
-
-  document.getElementById("contactInfo").innerHTML = `
-    <p data-vid="${contact.vid}">Name: ${contact.firstname} ${contact.lastname}</p>
-    <p>Post: ${contact.post_name}</p>
-    <div class="notes-section">
-      <label for="outreachNote">Outreach Notes:</label>
-      <textarea id="outreachNote" placeholder="Add your outreach notes here..."></textarea>
-    </div>
-    <div class="button-group">
-      <button class="yes-button" id="markYes">Yes</button>
-      <button class="no-button" id="markNo">No</button>
-    </div>
-  `;
-
-  // Add event listeners for Yes/No buttons
-  document
-    .getElementById("markYes")
-    .addEventListener("click", () => updateContact("Yes"));
-  document
-    .getElementById("markNo")
-    .addEventListener("click", () => updateContact("No"));
 }
 
 // Helper functions
@@ -224,36 +274,6 @@ function showError(message) {
   setTimeout(() => {
     errorElement.style.display = "none";
   }, 3000);
-}
-
-async function updateContact(value) {
-  if (!currentContactVid) return;
-
-  const noteText = document.getElementById("outreachNote").value;
-  const result = await chrome.storage.local.get(["loginApiKey"]);
-
-  try {
-    await fetch(`${API_URL}/contact`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-auth": result.loginApiKey,
-      },
-      body: JSON.stringify({
-        vid: currentContactVid,
-        value: value,
-        note: noteText,
-      }),
-    });
-    // After successful update, show the button again and clear the contact info
-    document.getElementById("getNextContact").style.display = "block";
-    document.getElementById("contactInfo").innerHTML = "";
-    // Automatically click the button to get the next contact
-    document.getElementById("getNextContact").click();
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Error updating contact");
-  }
 }
 
 // Add this function to handle popup closing

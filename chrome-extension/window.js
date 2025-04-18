@@ -1,3 +1,17 @@
+// API EXAMPLES
+// curl -X GET http://localhost:3000/contact \
+//   -H "x-auth: YOUR_LOGIN_API_KEY" \
+//   -H "Content-Type: application/json"
+
+// curl -X POST http://localhost:3000/contact \
+//   -H "x-auth: YOUR_LOGIN_API_KEY" \
+//   -H "Content-Type: application/json" \
+//   -d '{
+//     "vid": "CONTACT_VID",
+//     "value": "Yes",
+//     "note": "Test note for the contact"
+//   }'
+
 // Configuration
 let API_URL = "https://9kzy6h2ww4.execute-api.us-east-2.amazonaws.com/prod";
 let currentContactVid = null;
@@ -204,18 +218,13 @@ async function handleContactUpdate(value) {
 
 // Event Listeners Setup
 function setupEventListeners() {
-  // Login button
   document.getElementById("loginButton").addEventListener("click", handleLogin);
-
-  // Contact update buttons
   document
     .getElementById("markYes")
     .addEventListener("click", () => handleContactUpdate("Yes"));
   document
     .getElementById("markNo")
     .addEventListener("click", () => handleContactUpdate("No"));
-
-  // Retry button
   document
     .getElementById("retryButton")
     .addEventListener("click", startContactFlow);
@@ -230,64 +239,3 @@ async function initializeApp() {
 
 // Entry Point
 document.addEventListener("DOMContentLoaded", initializeApp);
-
-// GET EXAMPLE
-// curl -X GET http://localhost:3000/contact \
-//   -H "x-auth: YOUR_LOGIN_API_KEY" \
-//   -H "Content-Type: application/json"
-
-// POST EXAMPLE
-// curl -X POST http://localhost:3000/contact \
-//   -H "x-auth: YOUR_LOGIN_API_KEY" \
-//   -H "Content-Type: application/json" \
-//   -d '{
-//     "vid": "CONTACT_VID",
-//     "value": "Yes",
-//     "note": "Test note for the contact"
-//   }'
-
-// Show/hide screen functions
-function showScreen(screenId) {
-  const screens = ["loadingScreen", "setupScreen", "mainScreen"];
-  screens.forEach((screen) => {
-    const element = document.getElementById(screen);
-    if (element) {
-      element.style.display = screen === screenId ? "block" : "none";
-    }
-  });
-}
-
-// Helper functions
-function showSetupScreen(message = null) {
-  document.getElementById("setupScreen").style.display = "block";
-  document.getElementById("mainScreen").style.display = "none";
-
-  if (message) {
-    document.getElementById("setupMessage").textContent = message;
-  }
-}
-
-function showMainScreen() {
-  document.getElementById("setupScreen").style.display = "none";
-  document.getElementById("mainScreen").style.display = "block";
-}
-
-function showError(message) {
-  const errorElement = document.getElementById("errorMessage");
-  errorElement.textContent = message;
-  errorElement.style.display = "block";
-  setTimeout(() => {
-    errorElement.style.display = "none";
-  }, 3000);
-}
-
-// Add this function to handle popup closing
-function handlePopupClose() {
-  // Save any necessary state before popup closes
-  if (currentContactVid) {
-    chrome.storage.local.set({ lastContactVid: currentContactVid });
-  }
-}
-
-// Add event listener for popup closing
-window.addEventListener("unload", handlePopupClose);

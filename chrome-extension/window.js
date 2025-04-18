@@ -89,8 +89,13 @@ async function updateContact(apiKey, vid, value, note) {
 }
 
 // UI Functions
+function clearContactInputs() {
+  document.getElementById("outreachNote").value = "";
+}
+
 function displayContact(contact) {
   currentContactVid = contact.vid;
+  clearContactInputs();
   openLinkedInProfile(contact.linkedin_url);
   updateContactDisplay(contact);
 }

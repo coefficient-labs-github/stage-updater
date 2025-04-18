@@ -1,17 +1,3 @@
-// API EXAMPLES
-// curl -X GET http://localhost:3000/contact \
-//   -H "x-auth: YOUR_LOGIN_API_KEY" \
-//   -H "Content-Type: application/json"
-
-// curl -X POST http://localhost:3000/contact \
-//   -H "x-auth: YOUR_LOGIN_API_KEY" \
-//   -H "Content-Type: application/json" \
-//   -d '{
-//     "vid": "CONTACT_VID",
-//     "value": "Yes",
-//     "note": "Test note for the contact"
-//   }'
-
 // Configuration
 let API_URL = "https://9kzy6h2ww4.execute-api.us-east-2.amazonaws.com/prod";
 let currentContactVid = null;
